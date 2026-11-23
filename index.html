@@ -3,9 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My portfolio</title>
+    <title>Ajo/Thrift Collection Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    
+
+    <div class="container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fa-solid fa-vault"></i>
+                <h1>Thrift Circle</h1>
+            </div>
+            <p class="subtitle">Rotational Savings & Queue Manager</p>
+        </header>
+
+        <!-- Top Dashboard Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Total Queue</span>
+                <span class="stat-value">{{ members|length }}</span>
+            </div>
+            <div class="stat-card highlight">
+                <span class="stat-label">Awaiting Payout</span>
+                <span class="stat-value">{{ eligible_count }}</span>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="grid-layout">
+            
+            <!-- Left Column: Forms & Actions -->
+            <div class="action-column">
+                
+                <!-- Add Member Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <h3>Register Member</h3>
+                    </div>
+                    <form action="/add" method="POST" class="styled-form">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" name="name" placeholder="e.g. Sarah Connor" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="amount">Monthly Contribution ($)</label>
+                            <input type="number" id="amount" name="amount" step="0.01" min="1" placeholder="e.g. 100" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-plus"></i> Add to Queue
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Monthly Draw Action -->
+                <div class="card draw-card">
+                    <div class="card-header">
+                        <i class="fa-solid fa-trophy"></i>
+                        <h3>End of Month Payout</h3>
+                    </div>
+                    <p class="card-desc">Process the next scheduled withdrawal in the queue.</p>
+                    <form action="/draw" method="POST">
+                        <button type="submit" class="btn btn-accent" {% if eligible_count == 0 %}disabled{% endif %}>
+                            <i class="fa-solid fa-hand-holding-dollar"></i> Release Next Payout
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+            <!-- Danger Zone / Reset Card -->
+<div class="card danger-card">
+    <div class="card-header" style="color: #ef4444;">
+        <i class="fa-solid fa-trash-can"></i>
+        <h3>Reset Queue</h3>
+    </div>
+    <p class="card-desc">Clear all members and start a brand new cycle.</p>
+    <form action="/clear" method="POST" onsubmit="return confirm('Are you sure you want to delete all members and reset the queue? This cannot be undone!');">
+        <button type="submit" class="btn btn-danger">
+            <i class="fa-solid fa-triangle-exclamation"></i> Clear All Members
+        </button>
+    </form>
+</div>
+
+            <!-- Right Column: Queue Display -->
+            <div class="queue-column">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa-solid fa-list-ol"></i>
+                        <h3>Rotation Queue</h3>
+                    </div>
+
+                    {% if members %}
+                    <ul class="member-list">
+                        {% for member in members %}
+                        <li class="member-item {% if member.has_received %}paid{% endif %}">
+                            <div class="queue-badge">#{{ member.queue_position }}</div>
+                            <div class="member-info">
+                                <span class="member-name">{{ member.name }}</span>
+                                <span class="member-amount">${{ "%.2f"|format(member.monthly_amount) }}/mo</span>
+                            </div>
+                            <div class="status-tag">
+                                {% if member.has_received %}
+                                    <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Paid</span>
+                                {% else %}
+                                    <span class="badge badge-waiting"><i class="fa-solid fa-clock"></i> Waiting</span>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fa-solid fa-users-slash"></i>
+                        <p>No members registered yet. Add someone to start the queue!</p>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </body>
 </html>
